@@ -1,0 +1,32 @@
+
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+
+    <f:entry>
+
+        <f:entry field="tfsServerUrl" title="${%TFS Server URL}">
+            <f:textbox name="tfsServerUrl" value="${instance.tfsServerUrl}" />
+        </f:entry>
+        <f:entry field="tfsServerUsername" title="Username">
+            <f:textbox name="tfsServerUsername" value="${instance.tfsServerUsername}" />
+        </f:entry>
+        <f:entry field="tfsServerPassword" title="Password">
+            <f:textbox name="tfsServerPassword" value="${instance.tfsServerPassword}" />
+        </f:entry>
+
+        <f:entry field="tfsProjectPath" title="${%TFS Project Paths}">
+            <f:repeatable var="tfsProjectPaths" items="${instance.tfsProjectPaths}" add="${%Add Additional Path}">
+                <table>
+                    <f:textbox name="tfsProjectPath" value="${tfsProjectPaths.tfsProjectPath}"/>
+                </table>
+             </f:repeatable>
+        </f:entry>
+
+        <f:entry title="${%Schedule}" help="/descriptor/hudson.triggers.TimerTrigger/help/spec">
+            <f:textarea name="cronTabSpec"
+                        checkUrl="'${rootURL}/trigger/TimerTrigger/check?value='+encodeURIComponent(this.value)"
+                        value="${instance.spec}"/>
+        </f:entry>
+
+    </f:entry>
+
+</j:jelly>
