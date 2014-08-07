@@ -31,10 +31,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 
 public class TFSTrigger extends AbstractTrigger {
@@ -121,9 +118,23 @@ public class TFSTrigger extends AbstractTrigger {
                 VersionSpec historyRangeStart = new DateVersionSpec(lastBuildDate);
                 VersionSpec historyRangeEnd = new DateVersionSpec(currentTime);
 
+                List<String> pathsWithoutChanges = new LinkedList<String>();
+
                 for (TFSProjectPath path : tfsProjectPaths) {
-                    changesFound |= checkIfProjectPathHasChanges(versionControlClient, log, path.getTfsProjectPath(),
-                            historyRangeStart, historyRangeEnd);
+                    boolean changesFoundInCurrentPath = checkIfProjectPathHasChanges(versionControlClient, log,
+                                path.getTfsProjectPath(), historyRangeStart, historyRangeEnd);
+                    changesFound |= changesFoundInCurrentPath;
+                    if (!changesFoundInCurrentPath) {
+                        pathsWithoutChanges.add(path.getTfsProjectPath());
+                    }
+                }
+
+                if (pathsWithoutChanges.size() > 0) {
+                    log.info("The following paths did not have any detected changes:");
+                    log.info("------------------------------------------------------");
+                    for (String pathWithoutChanges : pathsWithoutChanges) {
+                        log.info(pathWithoutChanges);
+                    }
                 }
 
                 versionControlClient.close();
@@ -230,27 +241,37 @@ public class TFSTrigger extends AbstractTrigger {
                     historyRangeStart, historyRangeEnd, Integer.MAX_VALUE, true, true, false, false);
 
             if (listOfChanges.length > 0) {
-                log.info("Changesets Found for " + tfsProjectPath +  ":");
-                for (Changeset change : listOfChanges) {
-                    log.info("Changeset " + change.getChangesetID());
-                    Change[] changes = change.getChanges();
-                    for (Change itemChange : changes) {
-                        com.microsoft.tfs.core.clients.versioncontrol.soapextensions.Item item = itemChange.getItem();
-                        String serverItemPath = item.getServerItem();
-                        if (serverItemPath != null && !serverItemPath.isEmpty()) {
-                            log.info(serverItemPath);
-                        }
-                    }
-                }
-            } else {
-                log.info("No changes found for " + tfsProjectPath);
+                logInformationAboutChanges(log, tfsProjectPath, listOfChanges);
             }
-
 
             return (listOfChanges.length > 0);
         }
         catch (ServerPathFormatException e) {
             throw new XTriggerException(e.getMessage());
+        }
+    }
+
+    protected void logInformationAboutChanges(XTriggerLog log, String tfsProjectPath, Changeset[] listOfChanges) {
+
+        StringBuilder underline = new StringBuilder();
+        for (int i = 0; i < tfsProjectPath.length(); i++) {
+            underline.append('-');
+        }
+
+        log.info(tfsProjectPath);
+        log.info(underline.toString());
+
+        for (Changeset change : listOfChanges) {
+            log.info("Changeset " + change.getChangesetID());
+            Change[] changes = change.getChanges();
+            for (Change itemChange : changes) {
+                com.microsoft.tfs.core.clients.versioncontrol.soapextensions.Item item = itemChange.getItem();
+                String serverItemPath = item.getServerItem();
+                if (serverItemPath != null && !serverItemPath.isEmpty()) {
+                    log.info(serverItemPath);
+                }
+            }
+            log.info("\n");
         }
     }
 
