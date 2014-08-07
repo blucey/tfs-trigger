@@ -99,8 +99,10 @@ public class TFSTrigger extends AbstractTrigger {
 
             if (tfsProjectPaths != null && !tfsProjectPaths.isEmpty()) {
 
+                log.info("Establishing connection to TFS...");
                 TFSTeamProjectCollection projectCollection = getTeamProjectCollection();
                 VersionControlClient versionControlClient = projectCollection.getVersionControlClient();
+                log.info("Done.");
 
                 Calendar lastBuildDate = getDateAndTimeOfLastBuild(log);
                 Calendar currentTime = Calendar.getInstance();
@@ -123,6 +125,9 @@ public class TFSTrigger extends AbstractTrigger {
                     changesFound |= checkIfProjectPathHasChanges(versionControlClient, log, path.getTfsProjectPath(),
                             historyRangeStart, historyRangeEnd);
                 }
+
+                versionControlClient.close();
+                projectCollection.close();
             } else {
                 log.info("There are no configured TFS project paths.");
             }
@@ -144,11 +149,10 @@ public class TFSTrigger extends AbstractTrigger {
             final ProtectionDomain protectionDomain = metaclass.getProtectionDomain();
             final CodeSource codeSource = protectionDomain.getCodeSource();
             if (codeSource == null) {
-                // TODO: log that we were unable to determine the codeSource
                 return;
             }
             final URL location = codeSource.getLocation();
-            // inspired by http://hg.netbeans.org/main/file/default/openide.filesystems/src/org/openide/filesystems/FileUtil.java#l1992
+
             final String u = location.toString();
             URI locationUri;
             if (u.startsWith("jar:file:") && u.endsWith("!/")) {
@@ -158,7 +162,6 @@ public class TFSTrigger extends AbstractTrigger {
                 locationUri = URI.create(u);
             }
             else {
-                // TODO: log that we were unable to determine location from codeSource
                 return;
             }
             final File pathToJar = new File(locationUri);
