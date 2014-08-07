@@ -17,6 +17,7 @@
             <f:repeatable var="tfsProjectPaths" items="${instance.tfsProjectPaths}" add="${%Add Additional Path}">
                 <table>
                     <f:textbox name="tfsProjectPath" value="${tfsProjectPaths.tfsProjectPath}"/>
+                    <f:repeatableDeleteButton />
                 </table>
              </f:repeatable>
         </f:entry>
