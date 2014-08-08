@@ -251,18 +251,21 @@ public class TFSTrigger extends AbstractTrigger {
         }
     }
 
+    private String createStringOfDashes(int length) {
+        StringBuilder dashes = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            dashes.append('-');
+        }
+        return dashes.toString();
+    }
+
     protected void logInformationAboutChanges(XTriggerLog log, String tfsProjectPath, Changeset[] listOfChanges) {
 
-        StringBuilder underline = new StringBuilder();
-        for (int i = 0; i < tfsProjectPath.length(); i++) {
-            underline.append('-');
-        }
-
         log.info(tfsProjectPath);
-        log.info(underline.toString());
+        log.info(createStringOfDashes(tfsProjectPath.length()));
 
         for (Changeset change : listOfChanges) {
-            log.info("Changeset " + change.getChangesetID());
+            log.info("Change Set #" + change.getChangesetID());
             Change[] changes = change.getChanges();
             for (Change itemChange : changes) {
                 com.microsoft.tfs.core.clients.versioncontrol.soapextensions.Item item = itemChange.getItem();
