@@ -96,9 +96,17 @@ public class TFSTrigger extends AbstractTrigger {
 
             if (tfsProjectPaths != null && !tfsProjectPaths.isEmpty()) {
 
+                TFSTeamProjectCollection projectCollection = null;
+                VersionControlClient versionControlClient = null;
+
                 log.info("Establishing connection to TFS...");
-                TFSTeamProjectCollection projectCollection = getTeamProjectCollection();
-                VersionControlClient versionControlClient = projectCollection.getVersionControlClient();
+                try {
+                    projectCollection = getTeamProjectCollection();
+                    versionControlClient = projectCollection.getVersionControlClient();
+                } catch (com.microsoft.tfs.core.exceptions.TECoreException ex) {
+                    log.info("TFS Exception caught: " + ex.getMessage());
+                    throw ex;
+                }
                 log.info("Done.");
 
                 Calendar lastBuildDate = getDateAndTimeOfLastBuild(log);
